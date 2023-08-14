@@ -14,10 +14,8 @@
         <div class="col-12">
           <div class="breeds-list">
             <div class="breeds-card" v-for="(b, i) of breeds" :key="i">
-              <div class="breeds-card-image">
-                <!--                <b-img  height="140" width="140" rounded :src=b.img></b-img>-->
-                <div class="breeds-card-image-background" :style="{backgroundImage: `url(${b.img})`}"></div>
-              </div>
+              <div class="breeds-card-image-background" :style="{backgroundImage: `url(${b.img})`}"></div>
+
               <div class="breeds-card-text">
                 {{ b.name.slice(0, 1).toUpperCase() + b.name.slice(1) }}
               </div>
@@ -149,7 +147,7 @@ export default {
     width: 100%;
     display: flex;
     flex-flow: row wrap;
-    justify-content: space-around;
+    justify-content: space-between;
     gap: 5px;
 
 
@@ -166,14 +164,11 @@ export default {
       justify-content: space-around;
       align-items: center;
 
-      .breeds-card-image {
-        width: 140px;
-        height: 140px;
-        border: 1px solid hsla(0, 0%, 50%, 0.2);
-      }
 
       .breeds-card-image-background {
         flex: 0 0 auto;
+        width: 140px;
+        height: 140px;
         //width: auto;
         //height: 100%;
         background-size: contain;
@@ -184,18 +179,19 @@ export default {
           box-shadow: 0 0 10px 3px rgba(0, 140, 186, 0.5);
         }
       }
-    }
 
-    .breeds-card-text {
-      width: 140px;
-      height: 30px;
-      border: 1px solid hsla(0, 0%, 50%, 0.2);
-      display: flex;
-      flex-flow: column wrap;
-      justify-content: center;
-      align-items: center;
+      .breeds-card-text {
+        width: 140px;
+        height: 30px;
+        border: 1px solid hsla(0, 0%, 50%, 0.2);
+        display: flex;
+        flex-flow: column wrap;
+        justify-content: center;
+        align-items: center;
+      }
     }
   }
+
 }
 
 </style>
