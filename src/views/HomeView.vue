@@ -14,10 +14,10 @@
           <div class="breeds-list">
             <div class="breeds-card" v-for="(b, i) of breeds" :key="i">
               <div class="breeds-card-image-placeholder">
-<!--                <b-img  height="140" width="140" rounded onerror = "this.setNoImage(i)" :src=b.img></b-img>-->
+                <!--                <b-img  height="140" width="140" rounded onerror = "this.setNoImage(i)" :src=b.img></b-img>-->
                 <div class="breeds-card-image-background" :style="{backgroundImage: `url(${b.img})`}"></div>
 
-<!--                <div class="breeds-card-no-image">{{ flag == null ? 'no image' : '' }}</div>-->
+                <!--                <div class="breeds-card-no-image">{{ flag == null ? 'no image' : '' }}</div>-->
               </div>
               <div class="breeds-card-text">
                 {{ b.name.slice(0, 1).toUpperCase() + b.name.slice(1) }}
@@ -33,6 +33,7 @@
 <script>
 
 import axios from "axios";
+import $ from 'jquery';
 
 const pathMain = `https://dog.ceo/api/`;
 const pathAllBreeds = `breeds/list/all`;
@@ -49,15 +50,66 @@ export default {
       raw_images: null,
       titleImg: null,
       noImage: null,
+      isExists: false,
     }
   },
   methods: {
+    onLoad() {
+      this.isExists = true;
 
-    getPathRandomImage() {
+    },
+    onError() {
+      this.isExists = false;
 
     },
 
-    //возвращает массив объектов всех пород и подпород c одним изображением
+    checkImage(imageSrc, good) {
+      let img = new Image();
+      img.onload = good;
+      img.src = imageSrc;
+    },
+    getValidURL(urls) {
+      // console.log(urls.length);
+      // for (let i = 0; i < urls.length; i++) {
+      // console.log(urls[i]);
+      // }
+      let i = 0;
+      this.isExists = true;
+      do {
+        // this.isExists = false;
+        // this.checkImage(urls[i],
+        //     function () {
+        //       this.isExists = true;
+        //     },
+        //     function () {
+        //       this.isExists = false;
+        //     }
+        // );
+
+        $.ajax({
+          url: urls[i],
+          type:'HEAD',
+          error: function(){
+            this.isExists = false;
+            console.log("Error: " + i + " " + urls[i]);
+          },
+          success: function(){
+            this.isExists = true;
+          }
+        });
+
+        // console.log(this.isExists + ": " + urls[i]);
+        i++;
+      } while ((i < urls.length) && !this.isExists && (i < 6));
+
+      // if (this.isExists) {
+      console.log("всего " + urls.length + ", номер " + i  + " сейчас отправим: " + this.isExists + "::" + urls[i - 1]);
+
+      return urls[i - 1];
+      // return this.isExists ? urls[i - 1] : null;
+    },
+
+//возвращает массив объектов всех пород и подпород c одним изображением
     getAllBreeds() {
       let arr = [];
       let raw = null;
@@ -66,28 +118,41 @@ export default {
             raw = Object.entries(response.data.message);
             if (!!raw && raw.length > 0) {
               raw.forEach((item) => {
-                let img = null;
-                let arrSubs = [];
-                axios.get(pathMain + pathImagesByBreed(item[0]))
-                    .then(response => {
-                      img = response.data.message[0];
-                      item[1].forEach(itemSub => {
-                        let imgSub = null;
-                        axios.get(pathMain + pathImagesByBreedSubbreed(item[0], itemSub)).then(response => {
-                          imgSub = response.data.message[0];
-                          arrSubs.push({name: itemSub, img: imgSub});
-                        }).catch(err => console.log(err));
-                      });
-                      arr.push({name: item[0], img: img, sub: arrSubs});
-                    })
-                    .catch(err => console.log(err));
+                if (true || ((item[0] === 'segugio') || (item[0] === 'setter'))) {
+
+                  let imgValidURL = null;
+                  let subs = [];
+                  axios.get(pathMain + pathImagesByBreed(item[0]))
+                      .then(response => {
+                        //вернуть первую действующую ссылку
+                        imgValidURL = this.getValidURL(response.data.message);
+                        console.log(item[0] + ': ' + imgValidURL);
+                        // console.log(imgValidURL);
+                        // item[1].forEach(itemSub => {
+                        //   let imgSubValidURL = null;
+                        //   axios.get(pathMain + pathImagesByBreedSubbreed(item[0], itemSub)).then(response => {
+                        //     imgSubValidURL = this.getValidURL(response.data.message);
+                        //     subs.push({name: itemSub, img: imgSubValidURL});
+                        //   }).catch(err => console.log(err));
+                        // });
+                        arr.push({name: item[0], img: imgValidURL, sub: subs});
+                      })
+                      .catch(err => console.log(err));
+                }
+                ;
               });
             }
           })
           .catch(err => console.log(err));
       return arr
+    }
+    ,
 
-    },
+    getPathRandomImage() {
+      axios.get(pathMain + pathSingleRandomImage).then(response => this.titleImg = response.data.message).catch(err => console.log(err));
+    }
+    ,
+
     init() {
       // const getBreeds = async () => {
       //   try {
@@ -97,13 +162,15 @@ export default {
       //     console.log(err)
       //   }
       // };
-      axios.get(pathMain + pathSingleRandomImage).then(response => this.titleImg = response.data.message).catch(err => console.log(err));
+      this.getPathRandomImage();
       this.breeds = this.getAllBreeds();
-    },
+    }
+    ,
   },
   mounted() {
     this.init();
-  },
+  }
+  ,
 }
 </script>
 
