@@ -1,53 +1,54 @@
 <template>
   <div class="HomeView">
-<!--    <b-container>-->
-<!--      <b-row>-->
-<!--        <div class="col-12">-->
-          <div class="title" @click="getPathRandomImage">
-            <div class="title-image-background" :style="{backgroundImage: `url(${titleImg})`}"></div>
-          </div>
+    <div class="title" @click="setRandomImage">
+      <div class="title-image-background" :style="{backgroundImage: `url(${titleImg})`}"></div>
+      <b-btn class="btn-return" :style="{display: isOpenSubbreeds ?'block':'none'}"
+             size="sm"
+             variant="primary"
+             onclick="event.stopPropagation()"
+             @click="setBreedsAsDogs">
+        <b>&#8592;</b> Вернуться к породам
+      </b-btn>
+    </div>
+    <div class="dogs-list">
+      <div class="dogs-card"
+           v-for="(d, i) of dogs" :key="i"
+      >
+        <div class="dogs-card-image-placeholder"
+             @click="getPathImages(d.name)">
+          <div class="dogs-card-image-background" :style="{backgroundImage: `url(${d.img})`}"></div>
+        </div>
+        <div class="dogs-card-text" :class="{extra: (d.sub?.length>0)}"
+             @click="setSubbreedsByBreedAsDogs(d.name)">
+          {{ d.name.slice(0, 1).toUpperCase() + d.name.slice(1) }}
+        </div>
+      </div>
+    </div>
+    <!--        </div>-->
+    <!--        <div class="col-12 col-sm-2 col-md-2 col-lg-2 col-xl-2">-->
+    <!--          <div class="breeds-list" v-if="!!currentBreed.sub && currentBreed.sub.length > 0">-->
+    <!--            <div class="breeds-card"-->
+    <!--                 v-for="(sb, j) of currentBreed.sub" :key="j">-->
+    <!--              <div class="breeds-card-image-placeholder">-->
+    <!--                <div class="breeds-card-image-background" :style="{backgroundImage: `url(${sb.img})`}"></div>-->
+    <!--              </div>-->
+    <!--              <div class="breeds-card-text">-->
+    <!--                {{ sb.name.slice(0, 1).toUpperCase() + sb.name.slice(1) }}-->
+    <!--              </div>-->
+    <!--            </div>-->
+    <!--          </div>-->
+    <!--        </div>-->
+    <!--      </b-row>-->
+    <!--    </b-container>-->
 
-<!--        </div>-->
-<!--      </b-row>-->
-<!--      <b-row>-->
-<!--        <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">-->
-          <div class="breeds-list">
-            <div class="breeds-card"
-                 v-for="(b, i) of breeds" :key="i"
-                 @click="isOpenBreedModal=true; getPathImagesByBreed(b.name)">
-              <div class="breeds-card-image-placeholder">
-                <div class="breeds-card-image-background" :style="{backgroundImage: `url(${b.img})`}"></div>
-              </div>
-              <div class="breeds-card-text" :class="{extra: (b.sub.length>0)}">
-                {{ b.name.slice(0, 1).toUpperCase() + b.name.slice(1) }}
-              </div>
-            </div>
-          </div>
-<!--        </div>-->
-        <!--        <div class="col-12 col-sm-2 col-md-2 col-lg-2 col-xl-2">-->
-        <!--          <div class="breeds-list" v-if="!!currentBreed.sub && currentBreed.sub.length > 0">-->
-        <!--            <div class="breeds-card"-->
-        <!--                 v-for="(sb, j) of currentBreed.sub" :key="j">-->
-        <!--              <div class="breeds-card-image-placeholder">-->
-        <!--                <div class="breeds-card-image-background" :style="{backgroundImage: `url(${sb.img})`}"></div>-->
-        <!--              </div>-->
-        <!--              <div class="breeds-card-text">-->
-        <!--                {{ sb.name.slice(0, 1).toUpperCase() + sb.name.slice(1) }}-->
-        <!--              </div>-->
-        <!--            </div>-->
-        <!--          </div>-->
-        <!--        </div>-->
-<!--      </b-row>-->
-<!--    </b-container>-->
-
-    <div class="breed-modal" :style="{display: isOpenBreedModal?'block':'none'}">
+    <div class="dogs-modal" :style="{display: isOpenDogModal?'block':'none'}">
       <b-btn class="modal-btn-close" size="md"
              variant="danger"
-             @click="isOpenBreedModal=false">
+             @click="isOpenDogModal=false">
         &times;
       </b-btn>
-      <div class="breed-modal-collection-images">
-        <div class="breed-modal-image"
+      <div class="dogs-modal-collection-images">
+        <div class="dogs-modal-image"
              v-for="(img, i) of imgs" :key="i"
              :style="{backgroundImage: `url(${img})`}"
              @click="isOpenModalFullImage=true; full_img = img"
@@ -56,7 +57,7 @@
       </div>
     </div>
 
-    <div class="breed-modal-full-image" :style="{display: isOpenModalFullImage?'block':'none'}">
+    <div class="dogs-modal-full-image" :style="{display: isOpenModalFullImage?'block':'none'}">
       <b-btn class="modal-btn-close" size="md"
              variant="danger"
              @click="isOpenModalFullImage=false">
@@ -90,24 +91,23 @@ export default {
   data() {
     return {
       breeds: [],
+      subbreeds: [],
+      dogs: [],
+      dogsType: null,
+      currentDog: null,
+      currentBreed: null,
       imgs: [],
       full_img: null,
-      currentBreed: null,
       raw_images: null,
       titleImg: null,
       noImage: null,
       isExists: false,
-      isOpenBreedModal: false,
+      isOpenDogModal: false,
       isOpenModalFullImage: false,
+      isOpenSubbreeds: false,
     }
   },
   methods: {
-    onLoad() {
-      this.isExists = true;
-    },
-    onError() {
-      this.isExists = false;
-    },
 
     checkImage(imageSrc, good) {
       let img = new Image();
@@ -143,13 +143,8 @@ export default {
             this.isExists = true;
           }
         });
-
-        // console.log(this.isExists + ": " + urls[i]);
         i++;
       } while ((i < urls.length) && !this.isExists && (i < 6));
-
-      // if (this.isExists) {
-      // console.log("всего " + urls.length + ", номер " + i + " сейчас отправим: " + this.isExists + "::" + urls[i - 1]);
 
       return urls[i - 1];
       // return this.isExists ? urls[i - 1] : null;
@@ -195,31 +190,54 @@ export default {
       return arr
     },
 
-    getPathRandomImage() {
+    setRandomImage() {
       axios.get(pathRandomImage).then(response => this.titleImg = response.data.message).catch(err => console.log(err));
     },
 
 
     init() {
-      // const getBreeds = async () => {
-      //   try {
-      //     const response = await axios.get(pathMain + pathAllBreeds);
-      //     this.raw = Object.entries(response.data.message);
-      //   } catch (err) {
-      //     console.log(err)
-      //   }
-      // };
-      this.getPathRandomImage();
+      this.setRandomImage();
       this.breeds = this.getAllBreeds();
-      // this.setSubbreed(0);
-      // console.log(this.breeds[0].name);
-      // console.log(this.currentBreed.sub);
+      this.setBreedsAsDogs();
+
     },
 
     getPathImagesByBreed(bname) {
       axios.get(pathImagesByBreed(bname)).then(response => {
         this.imgs = response.data.message;
       }).catch(err => console.log(err));
+    },
+
+    getPathImagesBySubbreed(bname, sname) {
+      axios.get(pathImagesByBreedSubbreed(bname, sname)).then(response => {
+        this.imgs = response.data.message;
+      }).catch(err => console.log(err));
+    },
+
+    getPathImages(dname) {
+      if (this.dogsType === 'breed') {
+      this.getPathImagesByBreed(dname);
+      } else {
+        this.getPathImagesBySubbreed(this.currentBreed, dname);
+        console.log(this.currentBreed, dname);
+      }
+      this.isOpenDogModal = true;
+
+    },
+
+    setBreedsAsDogs() {
+      this.isOpenSubbreeds = false;
+      this.dogs = this.breeds.sort();
+      this.dogsType = 'breed';
+    },
+
+    setSubbreedsByBreedAsDogs(dname) {
+      if (this.dogsType === 'breed' && this.breeds.filter(item => item.name === dname)[0].sub.length > 0) {
+        this.isOpenSubbreeds = true;
+        this.dogs = this.breeds.filter(item => item.name === dname)[0].sub;
+        this.currentBreed = dname;
+        this.dogsType = 'subbreed';
+      }
     },
 
   },
@@ -235,11 +253,13 @@ export default {
   position: relative;
 
   .title {
+    position: relative;
     flex: 0 0 auto;
     width: 100%;
     height: 300px;
     margin-bottom: 10px;
     border: 3px solid hsla(0, 0%, 50%, 0.2);
+    cursor: pointer;
   }
 
   .title-image {
@@ -259,7 +279,7 @@ export default {
     }
   }
 
-  .breeds-list {
+  .dogs-list {
     width: 100%;
     display: flex;
     flex-flow: row wrap;
@@ -267,7 +287,7 @@ export default {
     gap: 5px;
     //border: 1px solid hsla(0, 0%, 0%, 0.2);
 
-    .breeds-card {
+    .dogs-card {
       width: 150px;
       height: 180px;
       //min-width: 100px;
@@ -280,11 +300,7 @@ export default {
       justify-content: space-around;
       align-items: center;
 
-      &:hover {
-        box-shadow: 0 0 10px 3px rgba(0, 140, 186, 0.5);
-      }
-
-      .breeds-card-image-placeholder {
+      .dogs-card-image-placeholder {
         position: relative;
         width: 140px;
         height: 140px;
@@ -292,8 +308,13 @@ export default {
         flex-flow: column wrap;
         justify-content: space-around;
         align-items: center;
+        cursor: pointer;
 
-        .breeds-card-image-background {
+        &:hover {
+          box-shadow: 0 0 10px 3px rgba(0, 140, 186, 0.5);
+        }
+
+        .dogs-card-image-background {
           flex: 0 0 auto;
           width: 140px;
           height: 140px;
@@ -304,7 +325,7 @@ export default {
           background-repeat: no-repeat;
         }
 
-        .breeds-card-no-image {
+        .dogs-card-no-image {
           position: absolute;
           width: 140px;
           height: 140px;
@@ -315,7 +336,7 @@ export default {
         }
       }
 
-      .breeds-card-text {
+      .dogs-card-text {
         width: 140px;
         height: 30px;
         border: 1px solid hsla(0, 0%, 50%, 0.2);
@@ -326,9 +347,23 @@ export default {
 
         &.extra {
           font-weight: bold;
+          cursor: pointer;
+
+          &:hover {
+            box-shadow: 0 0 10px 3px rgba(0, 140, 186, 0.5);
+          }
+
         }
       }
     }
+  }
+
+  .btn-return {
+    position: absolute;
+    left: 5px;
+    bottom: 5px;
+    opacity: 80%;
+    z-index: 10;
   }
 
   .modal-btn-close {
@@ -339,7 +374,7 @@ export default {
     z-index: 10;
   }
 
-  .breed-modal {
+  .dogs-modal {
     position: fixed;
     left: 5%;
     top: 0px;
@@ -349,9 +384,9 @@ export default {
     margin: 1%;
     background-color: white;
     border: 1px solid hsla(0, 0%, 50%, 0.8);
+    z-index: 20;
 
-
-    .breed-modal-collection-images {
+    .dogs-modal-collection-images {
       position: relative;
       width: 100%;
       height: 100%;
@@ -363,7 +398,7 @@ export default {
       overflow-y: auto;
       z-index: 5;
 
-      .breed-modal-image {
+      .dogs-modal-image {
         position: relative;
         width: 100px;
         height: 100px;
@@ -379,7 +414,7 @@ export default {
     }
   }
 
-  .breed-modal-full-image {
+  .dogs-modal-full-image {
     position: fixed;
     left: 5%;
     top: 0px;
@@ -389,7 +424,7 @@ export default {
     margin: 1%;
     background-color: white;
     border: 1px solid hsla(0, 0%, 50%, 0.8);
-
+    z-index: 20;
     .full-image {
       position: relative;
       width: 100%;
