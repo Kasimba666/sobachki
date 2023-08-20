@@ -24,22 +24,6 @@
         </div>
       </div>
     </div>
-    <!--        </div>-->
-    <!--        <div class="col-12 col-sm-2 col-md-2 col-lg-2 col-xl-2">-->
-    <!--          <div class="breeds-list" v-if="!!currentBreed.sub && currentBreed.sub.length > 0">-->
-    <!--            <div class="breeds-card"-->
-    <!--                 v-for="(sb, j) of currentBreed.sub" :key="j">-->
-    <!--              <div class="breeds-card-image-placeholder">-->
-    <!--                <div class="breeds-card-image-background" :style="{backgroundImage: `url(${sb.img})`}"></div>-->
-    <!--              </div>-->
-    <!--              <div class="breeds-card-text">-->
-    <!--                {{ sb.name.slice(0, 1).toUpperCase() + sb.name.slice(1) }}-->
-    <!--              </div>-->
-    <!--            </div>-->
-    <!--          </div>-->
-    <!--        </div>-->
-    <!--      </b-row>-->
-    <!--    </b-container>-->
 
     <div class="dogs-modal" :style="{display: isOpenDogModal?'block':'none'}">
       <b-btn class="modal-btn-close" size="md"
