@@ -7,7 +7,7 @@
              variant="primary"
              onclick="event.stopPropagation()"
              @click="setBreedsAsDogs">
-        <b>&#8592;</b> Вернуться к породам
+        <b>&#8592;</b> return to breeds
       </b-btn>
     </div>
     <div class="dogs-list">
