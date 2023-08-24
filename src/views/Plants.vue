@@ -25,7 +25,7 @@
                 {{ field.title }}
               </div>
             </div>
-            <div class="plants-row" :style="{backgroundColor: (p%2 === 1) ? 'hsl(0, 0%, 83%, 0.2)' : 'none'}"
+            <div class="plants-row" :class="{last: (p == plants.length-1)}" :style="{backgroundColor: (p%2 === 1) ? 'hsl(0, 0%, 83%, 0.2)' : 'none'}"
                  v-if="!!plants && plants.length>0"
                  v-for="(plant, p) of plants" :key="p"
                  @click="getPlantByID(plant['id'])">
@@ -41,10 +41,14 @@
         </div>
         <div class="col-12 col-sm-3 col-md-3 col-lg-3 col-xl-3">
           <div class="plant-detail">
-            {{ (!!currentPlantDetail) ? currentPlantDetail["common_name"] : '' }}
-          </div>
-          <div class="plants-detail-image-placeholder">
-            <div class="plants-detail-image-background" :style="{backgroundImage: `url(${currentPlantDetail["thumbnail"]})`}">
+              <div class="plants-detail-image-placeholder">
+                  <div class="plants-detail-image-background" :style="{backgroundImage: `url(https://perenual.com/storage/species_image/16_acer_griseum/thumbnail/5158906371_ed08a86876_b.jpg)`}"></div>
+<!--                  <div class="plants-detail-image-background" :style="{backgroundImage: `url(${currentPlantDetail['thumbnail']})`}"></div>-->
+              </div>
+              <div class="plants-detail-properties">
+                  {{ (!!currentPlantDetail) ? currentPlantDetail["common_name"] : '' }}
+
+              </div>
 
           </div>
         </div>
@@ -155,7 +159,8 @@ export default {
       display: flex;
       flex-flow: row nowrap;
       justify-content: center;
-      border-bottom: 1px solid hsla(0, 0%, 50%, 0.8);
+      border-bottom: 1px solid hsla(0, 0%, 50%, 0.6);
+      //border-bottom: none;
       cursor: pointer;
 
       &:hover {
@@ -165,7 +170,10 @@ export default {
       &.plants-title {
         font-weight: bold;
         background-color: hsl(0, 0%, 83%, 0.3);
+      }
 
+      &.last {
+        border-bottom: none;
       }
 
       .plants-cell {
@@ -192,12 +200,24 @@ export default {
   .plant-detail {
     position: relative;
     width: auto;
+    min-width: 140px;
     height: 100%;
     border: 1px solid hsla(255, 0%, 50%, 0.8);
     display: flex;
     flex-flow: column nowrap;
     justify-content: center;
     //background-color: hsla(255, 0%, 50%, 0.6);
+
+    .plants-detail-properties {
+      width: 100%;
+      height: auto;
+      border: 1px solid hsla(255, 0%, 50%, 0.8);
+      display: flex;
+      flex-flow: column nowrap;
+      justify-content: center;
+
+
+    }
 
     .plants-detail-image-placeholder {
       position: relative;
