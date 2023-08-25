@@ -1,69 +1,79 @@
 <template>
-  <div class="Plants">
-    <b-container>
-      <b-row>
-        <div class="col-12 mb-1">
-          <div class="plants-top">
-            <div class="loading">
-              <b-button class="plants-btn"
-                        variant="primary"
-                        size="sm"
-                        @click="getPlants">
-                Get plants
-              </b-button>
-              Loaded: {{ !!plants ? plants.length : 'none' }}
-            </div>
-          </div>
-        </div>
-      </b-row>
-      <b-row>
-        <div class="col-12 col-sm-9 col-md-9 col-lg-9 col-xl-9">
-          <div class="plants-table">
-            <div class="plants-row plants-title">
-              <div class="plants-cell title" :class="{right: (i == plantsFields.length-1)}"
-                   v-for="(field, i) of plantsFields" :key="i">
-                {{ field.title }}
-              </div>
-            </div>
-            <div class="plants-row" :class="{last: (p == plants.length-1)}"
-                 :style="{backgroundColor: (p%2 === 1) ? 'hsl(0, 0%, 83%, 0.3)' : 'none'}"
-                 v-if="!!plants && plants.length>0"
-                 v-for="(plant, p) of plants" :key="p"
-                 @click="getPlantByID(plant['id'])">
-              <div class="plants-cell" :class="{right: (f == plantsFields.length-1)}"
-                   v-if="!!plantsFields && plantsFields.length>0"
-                   v-for="(field, f) of plantsFields" :key="f"
-              >
-                {{ arrToString(plant[field.name]) }}
-              </div>
-            </div>
-            <!--            {{ plants }}-->
-          </div>
-        </div>
-        <div class="col-12 col-sm-3 col-md-3 col-lg-3 col-xl-3">
-          <div class="plant-detail">
-            <div class="plants-detail-image-placeholder">
-              <!--                  <div class="plants-detail-image-background" :style="{backgroundImage: `url(https://perenual.com/storage/species_image/16_acer_griseum/thumbnail/5158906371_ed08a86876_b.jpg)`}"></div>-->
-              <div class="plants-detail-image-background"
-                   :style="{backgroundImage: `url(${getPathThumbnail(currentPlantDetail)})`}"></div>
-            </div>
-            <div class="plants-detail-properties">
-              {{ (!!currentPlantDetail) ? currentPlantDetail["description"] : '' }}
-            </div>
+    <div class="Plants">
+        <b-container>
+            <b-row>
+                <div class="col-12 mb-1">
+                    <div class="plants-top">
+                        <div class="loading">
+                            <div class="page-nav">
+                                <div class="page-nav-btn" @click="currentPlantsPage = 1">
+                                    <<
+                                </div>
+                                <input class="page-nav-input" type="number" min="1" max="400" v-model=currentPlantsPage>
+                                <div class="page-nav-btn" @click="currentPlantsPage = maxPlantsPage">
+                                    >>
+                                </div>
+                            </div>
+                            <b-button class="plants-btn"
+                                      variant="primary"
+                                      size="sm"
+                                      @click="getPlants(currentPlantsPage)">
+                                Get plants
+                            </b-button>
+                            Loaded: {{ !!plants ? plants.length : 'none' }}
+                            {{maxPlantsPage}}
+                        </div>
+                    </div>
+                </div>
+            </b-row>
+            <b-row>
+                <div class="col-12 col-sm-9 col-md-9 col-lg-9 col-xl-9">
+                    <div class="plants-table">
+                        <div class="plants-row plants-title">
+                            <div class="plants-cell title" :class="{right: (i == plantsFields.length-1)}"
+                                 v-for="(field, i) of plantsFields" :key="i">
+                                {{ field.title }}
+                            </div>
+                        </div>
+                        <div class="plants-row" :class="{last: (p == plants.length-1)}"
+                             :style="{backgroundColor: (p%2 === 1) ? 'hsl(0, 0%, 83%, 0.3)' : 'none'}"
+                             v-if="!!plants && plants.length>0"
+                             v-for="(plant, p) of plants" :key="p"
+                             @click="getPlantByID(plant['id'])">
+                            <div class="plants-cell" :class="{right: (f == plantsFields.length-1)}"
+                                 v-if="!!plantsFields && plantsFields.length>0"
+                                 v-for="(field, f) of plantsFields" :key="f"
+                            >
+                                {{ arrToString(plant[field.name]) }}
+                            </div>
+                        </div>
+                        <!--            {{ plants }}-->
+                    </div>
+                </div>
+                <div class="col-12 col-sm-3 col-md-3 col-lg-3 col-xl-3">
+                    <div class="plant-detail">
+                        <div class="plants-detail-image-placeholder">
+                            <!--                  <div class="plants-detail-image-background" :style="{backgroundImage: `url(https://perenual.com/storage/species_image/16_acer_griseum/thumbnail/5158906371_ed08a86876_b.jpg)`}"></div>-->
+                            <div class="plants-detail-image-background"
+                                 :style="{backgroundImage: `url(${getPathThumbnail(currentPlantDetail)})`}"></div>
+                        </div>
+                        <div class="plants-detail-properties">
+                            {{ (!!currentPlantDetail) ? currentPlantDetail["description"] : '' }}
+                        </div>
 
-          </div>
-        </div>
+                    </div>
+                </div>
 
-      </b-row>
-    </b-container>
-  </div>
+            </b-row>
+        </b-container>
+    </div>
 </template>
 
 <script>
 
 import axios from "axios";
 
-const apikey = 'sk-bJ4564e5fca7428c11966';
+const apikey = 'sk-bzOk64e895db0fe501966';
 const pathMain = 'https://perenual.com/api/';
 const pathSpeciesList = 'species-list';
 const pathSpeciesDetails = 'species/details/';
@@ -72,66 +82,70 @@ const defaultImage = 'default_image';
 const thumbnail = 'thumbnail';
 
 export default {
-  name: "Plants",
-  components: {},
-  props: [],
-  data() {
-    return {
-      plants: null,
-      currentPlantDetail: null,
-      plantsFields: [],
-    }
-  },
-  computed: {},
-  methods: {
-    init() {
-      this.plantsFields = [
-        {name: 'common_name', title: 'Common name'},
-        {name: 'scientific_name', title: 'Scientific name'},
-        {name: 'cycle', title: 'Cycle'},
-        {name: 'watering', title: 'Watering'},
-        {name: 'sunlight', title: 'Sunlight'},
-      ];
-
+    name: "Plants",
+    components: {},
+    props: [],
+    data() {
+        return {
+            plants: null,
+            currentPlantsPage: null,
+            currentPlantDetail: null,
+            plantsFields: [],
+        }
     },
-    getPlants() {
-      let pageNumber = 1;
-      let r = pathMain + pathSpeciesList + '?key=' + apikey + '&page=' + pageNumber;
-      axios.get(r).then(response => {
-        this.plants = response.data.data;
-      }).catch(err => console.log(err));
+    computed: {
+        maxPlantsPage() {
+            // return this.plants['last_page'];
+            return !!this.plants ? this.plants["last_page"] : '1';
+        },
     },
+    methods: {
+        init() {
+            this.plantsFields = [
+                {name: 'common_name', title: 'Common name'},
+                {name: 'scientific_name', title: 'Scientific name'},
+                {name: 'cycle', title: 'Cycle'},
+                {name: 'watering', title: 'Watering'},
+                {name: 'sunlight', title: 'Sunlight'},
+            ];
+            this.currentPlantsPage = 1;
+//            this.getPlants(this.currentPlantsPage);
+        },
+        getPlants(page) {
+            let r = pathMain + pathSpeciesList + '?key=' + apikey + '&page=' + page;
+            axios.get(r).then(response => {
+                this.plants = response.data.data;
+            }).catch(err => console.log(err));
+        },
 
-    getPlantByID(id) {
-      let r = pathMain + pathSpeciesDetails + id + '?key=' + apikey;
-      axios.get(r).then(response => {
-        this.currentPlantDetail = response.data;
-      }).catch(err => console.log(err));
+        getPlantByID(id) {
+            let r = pathMain + pathSpeciesDetails + id + '?key=' + apikey;
+            axios.get(r).then(response => {
+                this.currentPlantDetail = response.data;
+            }).catch(err => console.log(err));
 
+        },
+
+        getPathThumbnail(plant) {
+            return (!!plant) ? plant["default_image"]["thumbnail"] : '';
+        },
+
+        arrToString(arr) {
+            let r = '';
+            if (Array.isArray(arr)) {
+                arr.forEach((item, i) => {
+                    r += item.slice(0, 1).toUpperCase() + item.slice(1) + ', '
+                });
+                r = r.slice(0, -2);
+            } else {
+                r = arr;
+            }
+            return r;
+        },
     },
-
-    getPathThumbnail(plant) {
-      return (!!plant) ? plant["default_image"]["thumbnail"] : '';
+    mounted() {
+        this.init();
     },
-
-    arrToString(arr) {
-      let r = '';
-      if (Array.isArray(arr)) {
-        arr.forEach((item, i) => {
-          r += item.slice(0, 1).toUpperCase() + item.slice(1) + ', '
-        });
-        r = r.slice(0, -2);
-      } else {
-        r = arr;
-      }
-      console.log(arr);
-      console.log(r);
-      return r;
-    },
-  },
-  mounted() {
-    this.init();
-  },
 }
 </script>
 
@@ -163,6 +177,36 @@ export default {
 
       .plants-btn {
         position: relative;
+      }
+    }
+
+    .page-nav {
+      position: relative;
+      width: auto;
+      height: 40px;
+      display: flex;
+      flex-flow: row nowrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 5px;
+
+      .page-nav-btn {
+        width: 25px;
+        height: 30px;
+        border-radius: 3px;
+        border: 1px solid hsla(0, 0%, 50%, 0.8);
+        cursor: pointer;
+
+        &:hover {
+          box-shadow: 0 0 10px 3px rgba(0, 140, 186, 0.5);
+        }
+      }
+
+      .page-nav-input {
+        width: 60px;
+        //height: 30px;
+        border: 1px solid hsla(0, 0%, 50%, 0.8);
+        align-text: center;
       }
 
     }
