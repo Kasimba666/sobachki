@@ -25,7 +25,8 @@
                 {{ field.title }}
               </div>
             </div>
-            <div class="plants-row" :class="{last: (p == plants.length-1)}" :style="{backgroundColor: (p%2 === 1) ? 'hsl(0, 0%, 83%, 0.2)' : 'none'}"
+            <div class="plants-row" :class="{last: (p == plants.length-1)}"
+                 :style="{backgroundColor: (p%2 === 1) ? 'hsl(0, 0%, 83%, 0.3)' : 'none'}"
                  v-if="!!plants && plants.length>0"
                  v-for="(plant, p) of plants" :key="p"
                  @click="getPlantByID(plant['id'])">
@@ -33,7 +34,7 @@
                    v-if="!!plantsFields && plantsFields.length>0"
                    v-for="(field, f) of plantsFields" :key="f"
               >
-                {{ plant[field.name] }}
+                {{ arrToString(plant[field.name]) }}
               </div>
             </div>
             <!--            {{ plants }}-->
@@ -41,14 +42,14 @@
         </div>
         <div class="col-12 col-sm-3 col-md-3 col-lg-3 col-xl-3">
           <div class="plant-detail">
-              <div class="plants-detail-image-placeholder">
-                  <div class="plants-detail-image-background" :style="{backgroundImage: `url(https://perenual.com/storage/species_image/16_acer_griseum/thumbnail/5158906371_ed08a86876_b.jpg)`}"></div>
-<!--                  <div class="plants-detail-image-background" :style="{backgroundImage: `url(${currentPlantDetail['thumbnail']})`}"></div>-->
-              </div>
-              <div class="plants-detail-properties">
-                  {{ (!!currentPlantDetail) ? currentPlantDetail["common_name"] : '' }}
-
-              </div>
+            <div class="plants-detail-image-placeholder">
+              <!--                  <div class="plants-detail-image-background" :style="{backgroundImage: `url(https://perenual.com/storage/species_image/16_acer_griseum/thumbnail/5158906371_ed08a86876_b.jpg)`}"></div>-->
+              <div class="plants-detail-image-background"
+                   :style="{backgroundImage: `url(${getPathThumbnail(currentPlantDetail)})`}"></div>
+            </div>
+            <div class="plants-detail-properties">
+              {{ (!!currentPlantDetail) ? currentPlantDetail["description"] : '' }}
+            </div>
 
           </div>
         </div>
@@ -66,6 +67,9 @@ const apikey = 'sk-bJ4564e5fca7428c11966';
 const pathMain = 'https://perenual.com/api/';
 const pathSpeciesList = 'species-list';
 const pathSpeciesDetails = 'species/details/';
+
+const defaultImage = 'default_image';
+const thumbnail = 'thumbnail';
 
 export default {
   name: "Plants",
@@ -97,11 +101,32 @@ export default {
         this.plants = response.data.data;
       }).catch(err => console.log(err));
     },
+
     getPlantByID(id) {
       let r = pathMain + pathSpeciesDetails + id + '?key=' + apikey;
       axios.get(r).then(response => {
         this.currentPlantDetail = response.data;
       }).catch(err => console.log(err));
+
+    },
+
+    getPathThumbnail(plant) {
+      return (!!plant) ? plant["default_image"]["thumbnail"] : '';
+    },
+
+    arrToString(arr) {
+      let r = '';
+      if (Array.isArray(arr)) {
+        arr.forEach((item, i) => {
+          r += item.slice(0, 1).toUpperCase() + item.slice(1) + ', '
+        });
+        r = r.slice(0, -2);
+      } else {
+        r = arr;
+      }
+      console.log(arr);
+      console.log(r);
+      return r;
     },
   },
   mounted() {
@@ -205,27 +230,26 @@ export default {
     border: 1px solid hsla(255, 0%, 50%, 0.8);
     display: flex;
     flex-flow: column nowrap;
-    justify-content: center;
+    justify-content: start;
     //background-color: hsla(255, 0%, 50%, 0.6);
 
     .plants-detail-properties {
       width: 100%;
-      height: auto;
+      height: 500px;
       border: 1px solid hsla(255, 0%, 50%, 0.8);
       display: flex;
       flex-flow: column nowrap;
-      justify-content: center;
-
+      justify-content: start;
+      text-align: left;
 
     }
 
     .plants-detail-image-placeholder {
       position: relative;
-      width: 140px;
+      width: 100%;
       height: 140px;
       display: flex;
       flex-flow: column wrap;
-      justify-content: space-around;
       align-items: center;
       cursor: pointer;
 
@@ -235,7 +259,7 @@ export default {
 
       .plants-detail-image-background {
         flex: 0 0 auto;
-        width: 140px;
+        width: 100%;
         height: 140px;
         //width: auto;
         //height: 100%;
