@@ -41,7 +41,7 @@
       </div>
     </div>
 
-    <div class="dogs-modal-full-image" :style="{display: isOpenModalFullImage?'block':'none'}">
+    <div class="plants-modal-full-image" :style="{display: isOpenModalFullImage?'block':'none'}">
       <b-btn class="modal-btn-close" size="md"
              variant="danger"
              @click="isOpenModalFullImage=false">
@@ -398,7 +398,7 @@ export default {
     }
   }
 
-  .dogs-modal-full-image {
+  .plants-modal-full-image {
     position: fixed;
     left: 5%;
     top: 0px;

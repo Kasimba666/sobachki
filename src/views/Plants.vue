@@ -1,72 +1,94 @@
 <template>
-    <div class="Plants">
-        <b-container>
-            <b-row>
-                <div class="col-12 mb-1">
-                    <div class="plants-top">
-                        <div class="loading">
-                            <div class="page-nav">
-                                <div class="page-nav-btn" @click="currentPlantsPage = 1">
-                                    <<
-                                </div>
-                                <input class="page-nav-input" type="number" min="1" max="400" v-model=currentPlantsPage>
-                                <div class="page-nav-btn" @click="currentPlantsPage = maxPlantsPage">
-                                    >>
-                                </div>
-                            </div>
-                            <b-button class="plants-btn"
-                                      variant="primary"
-                                      size="sm"
-                                      @click="getPlants(currentPlantsPage)">
-                                Get plants
-                            </b-button>
-                            Loaded: {{ !!plants ? plants.length : 'none' }}
-                            {{maxPlantsPage}}
-                        </div>
-                    </div>
+  <div class="Plants">
+    <b-container>
+      <b-row>
+        <div class="col-12 mb-1">
+          <div class="plants-top">
+            <div class="loading">
+              <div class="page-nav">
+                <div class="page-nav-btn" @click="currentPlantsPage = 1">
+                  <<
                 </div>
-            </b-row>
-            <b-row>
-                <div class="col-12 col-sm-9 col-md-9 col-lg-9 col-xl-9">
-                    <div class="plants-table">
-                        <div class="plants-row plants-title">
-                            <div class="plants-cell title" :class="{right: (i == plantsFields.length-1)}"
-                                 v-for="(field, i) of plantsFields" :key="i">
-                                {{ field.title }}
-                            </div>
-                        </div>
-                        <div class="plants-row" :class="{last: (p == plants.length-1)}"
-                             :style="{backgroundColor: (p%2 === 1) ? 'hsl(0, 0%, 83%, 0.3)' : 'none'}"
-                             v-if="!!plants && plants.length>0"
-                             v-for="(plant, p) of plants" :key="p"
-                             @click="getPlantByID(plant['id'])">
-                            <div class="plants-cell" :class="{right: (f == plantsFields.length-1)}"
-                                 v-if="!!plantsFields && plantsFields.length>0"
-                                 v-for="(field, f) of plantsFields" :key="f"
-                            >
-                                {{ arrToString(plant[field.name]) }}
-                            </div>
-                        </div>
-                        <!--            {{ plants }}-->
-                    </div>
+                <input class="page-nav-input" type="number" min="1" max=maxPlantsPage v-model=currentPlantsPage>
+                <div class="page-nav-btn" @click="currentPlantsPage = maxPlantsPage">
+                  <!--                                <div class="page-nav-btn" @click="currentPlantsPage = maxPlantsPage">-->
+                  >>
                 </div>
-                <div class="col-12 col-sm-3 col-md-3 col-lg-3 col-xl-3">
-                    <div class="plant-detail">
-                        <div class="plants-detail-image-placeholder">
-                            <!--                  <div class="plants-detail-image-background" :style="{backgroundImage: `url(https://perenual.com/storage/species_image/16_acer_griseum/thumbnail/5158906371_ed08a86876_b.jpg)`}"></div>-->
-                            <div class="plants-detail-image-background"
-                                 :style="{backgroundImage: `url(${getPathThumbnail(currentPlantDetail)})`}"></div>
-                        </div>
-                        <div class="plants-detail-properties">
-                            {{ (!!currentPlantDetail) ? currentPlantDetail["description"] : '' }}
-                        </div>
+              </div>
+              <b-button class="plants-btn"
+                        variant="outline-secondary"
+                        size="sm"
+                        @click="getPlants(currentPlantsPage)">
+                Get plants
+              </b-button>
+              Loaded: {{ !!plants ? plants.length : 'none' }}
+              Pages: {{ maxPlantsPage }}
+            </div>
+          </div>
+        </div>
+      </b-row>
+      <b-row>
+        <div class="col-12 col-sm-9 col-md-9 col-lg-9 col-xl-9">
+          <div class="plants-table">
+            <div class="plants-row plants-title">
+              <div class="plants-cell title" :class="{right: (i === plantsFields.length-1)}"
+                   v-for="(field, i) of plantsFields" :key="i">
+                {{ field.title }}
+              </div>
+            </div>
+            <div class="plants-row"
+                 :class="{last: (p == plants.length-1)}"
+                 v-if="!!plants && plants.length>0"
+                 v-for="(plant, p) of plants" :key="p"
+                 :style="{backgroundColor: (p%2 === 1) ? 'hsl(0, 0%, 83%, 0.3)' : 'none'}"
+                 @click="getPlantByID(plant['id'])">
+              <div :class="{current: (!!currentPlantDetail && (plant['id'] === currentPlantDetail['id']))}">
 
-                    </div>
-                </div>
+              </div>
+              <div class="plants-cell" :class="{right: (f == plantsFields.length-1)}"
+                   v-if="!!plantsFields && plantsFields.length>0"
+                   v-for="(field, f) of plantsFields" :key="f"
+              >
+                {{ arrToString(plant[field.name]) }}
+              </div>
 
-            </b-row>
-        </b-container>
+            </div>
+            <!--            {{ plants }}-->
+          </div>
+        </div>
+        <div class="col-12 col-sm-3 col-md-3 col-lg-3 col-xl-3">
+          <div class="plant-detail">
+            <div class="plants-detail-image-placeholder">
+              <!--                  <div class="plants-detail-image-background" :style="{backgroundImage: `url(https://perenual.com/storage/species_image/16_acer_griseum/thumbnail/5158906371_ed08a86876_b.jpg)`}"></div>-->
+              <div class="plants-detail-image-background"
+                   :style="{backgroundImage: `url(${getPathThumbnail(currentPlantDetail)})`}"
+                   @click="isOpenModalFullImage=true; full_img=getPathFullImage(currentPlantDetail);"
+              >
+
+              </div>
+            </div>
+            <div class="plants-detail-properties">
+              {{ (!!currentPlantDetail) ? currentPlantDetail["description"] : '' }}
+            </div>
+
+          </div>
+        </div>
+
+      </b-row>
+    </b-container>
+
+    <div class="plants-modal-full-image" :style="{display: isOpenModalFullImage?'block':'none'}">
+      <b-btn class="modal-btn-close" size="md"
+             variant="danger"
+             @click="isOpenModalFullImage=false">
+        &times;
+      </b-btn>
+      <div class="full-image"
+           :style="{backgroundImage: `url(${full_img})`}">
+      </div>
     </div>
+
+  </div>
 </template>
 
 <script>
@@ -82,70 +104,81 @@ const defaultImage = 'default_image';
 const thumbnail = 'thumbnail';
 
 export default {
-    name: "Plants",
-    components: {},
-    props: [],
-    data() {
-        return {
-            plants: null,
-            currentPlantsPage: null,
-            currentPlantDetail: null,
-            plantsFields: [],
-        }
+  name: "Plants",
+  components: {},
+  props: [],
+  data() {
+    return {
+      plants: null,
+      currentPlantsPage: null,
+      maxPlantsPage: null,
+      currentPlantDetail: null,
+      plantsFields: [],
+      isOpenModalFullImage: false,
+    }
+  },
+  computed: {},
+  methods: {
+    init() {
+      this.plantsFields = [
+        {name: 'common_name', title: 'Common name'},
+        {name: 'scientific_name', title: 'Scientific name'},
+        {name: 'cycle', title: 'Cycle'},
+        {name: 'watering', title: 'Watering'},
+        {name: 'sunlight', title: 'Sunlight'},
+      ];
+      this.currentPlantsPage = 1;
+      this.getPlants(this.currentPlantsPage);
     },
-    computed: {
-        maxPlantsPage() {
-            // return this.plants['last_page'];
-            return !!this.plants ? this.plants["last_page"] : '1';
-        },
+    getPlants(page) {
+      let r = pathMain + pathSpeciesList + '?key=' + apikey + '&page=' + page;
+      axios.get(r).then(response => {
+        this.plants = response.data.data;
+        this.maxPlantsPage = response.data.last_page;
+        //       setTimeout( ()=>{this.getPlantByID(this.plants[0]["id"])}, 1000);
+      }).catch(err => console.log(err));
     },
-    methods: {
-        init() {
-            this.plantsFields = [
-                {name: 'common_name', title: 'Common name'},
-                {name: 'scientific_name', title: 'Scientific name'},
-                {name: 'cycle', title: 'Cycle'},
-                {name: 'watering', title: 'Watering'},
-                {name: 'sunlight', title: 'Sunlight'},
-            ];
-            this.currentPlantsPage = 1;
-//            this.getPlants(this.currentPlantsPage);
-        },
-        getPlants(page) {
-            let r = pathMain + pathSpeciesList + '?key=' + apikey + '&page=' + page;
-            axios.get(r).then(response => {
-                this.plants = response.data.data;
-            }).catch(err => console.log(err));
-        },
 
-        getPlantByID(id) {
-            let r = pathMain + pathSpeciesDetails + id + '?key=' + apikey;
-            axios.get(r).then(response => {
-                this.currentPlantDetail = response.data;
-            }).catch(err => console.log(err));
+    getPlantByID(id) {
+      let r = pathMain + pathSpeciesDetails + id + '?key=' + apikey;
+      axios.get(r).then(response => {
+        this.currentPlantDetail = response.data;
+      }).catch(err => console.log(err));
 
-        },
-
-        getPathThumbnail(plant) {
-            return (!!plant) ? plant["default_image"]["thumbnail"] : '';
-        },
-
-        arrToString(arr) {
-            let r = '';
-            if (Array.isArray(arr)) {
-                arr.forEach((item, i) => {
-                    r += item.slice(0, 1).toUpperCase() + item.slice(1) + ', '
-                });
-                r = r.slice(0, -2);
-            } else {
-                r = arr;
-            }
-            return r;
-        },
     },
-    mounted() {
-        this.init();
+
+    getPathThumbnail(plant) {
+      let def_img = (!!plant) ? plant["default_image"] : '';
+      if ((def_img != '') && (def_img != null)) {
+        return (!!def_img["thumbnail"]) ? def_img["thumbnail"] : '';
+      }
     },
+
+    getPathFullImage(plant) {
+      let def_img = (!!plant) ? plant["default_image"] : '';
+      console.log(def_img);
+      if ((def_img != '') && (def_img != null)) {
+        return (!!def_img["original_url"]) ? def_img["original_url"] : '';
+      }
+
+    },
+
+    arrToString(arr) {
+      let r = '';
+      if (Array.isArray(arr)) {
+        arr.forEach((item, i) => {
+          r += item.slice(0, 1).toUpperCase() + item.slice(1) + ', '
+        });
+        r = r.slice(0, -2);
+      } else {
+        r = arr;
+      }
+      return r;
+    },
+  },
+  mounted() {
+    this.init();
+  },
 }
 </script>
 
@@ -218,7 +251,7 @@ export default {
     height: 100%;
     display: flex;
     flex-flow: column nowrap;
-    justify-content: center;
+    justify-content: start;
     border: 1px solid hsla(0, 0%, 50%, 0.8);
 
     .plants-row {
@@ -241,14 +274,26 @@ export default {
         background-color: hsl(0, 0%, 83%, 0.3);
       }
 
+      &.chosen {
+        background-color: rgba(0, 140, 186, 0.5);
+      }
+
       &.last {
         border-bottom: none;
+      }
+
+      .current {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        border: 2px solid rgba(0, 140, 186, 0.5);
       }
 
       .plants-cell {
         position: relative;
         width: 100px;
         height: auto;
+        padding: 2px;
         flex: 1 1 auto;
         min-width: 50px;
         border-right: 1px solid hsla(0, 0%, 50%, 0.8);
@@ -275,12 +320,11 @@ export default {
     display: flex;
     flex-flow: column nowrap;
     justify-content: start;
-    //background-color: hsla(255, 0%, 50%, 0.6);
 
     .plants-detail-properties {
       width: 100%;
-      height: 500px;
-      border: 1px solid hsla(255, 0%, 50%, 0.8);
+      height: auto;
+      padding: 2px;
       display: flex;
       flex-flow: column nowrap;
       justify-content: start;
@@ -311,6 +355,36 @@ export default {
         background-position: center;
         background-repeat: no-repeat;
       }
+    }
+  }
+  .modal-btn-close {
+    position: absolute;
+    right: 5px;
+    top: 5px;
+    opacity: 80%;
+    z-index: 10;
+  }
+
+  .plants-modal-full-image {
+    position: fixed;
+    left: 5%;
+    top: 0px;
+    width: 90%;
+    height: 90%;
+    height-max: 100%;
+    margin: 1%;
+    background-color: white;
+    border: 1px solid hsla(0, 0%, 50%, 0.8);
+    z-index: 20;
+
+    .full-image {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      background-size: auto auto;
+      background-position: center;
+      background-repeat: no-repeat;
+      border: 1px solid hsla(0, 0%, 50%, 0.8);
     }
   }
 }
