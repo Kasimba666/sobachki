@@ -1,7 +1,7 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 import Dogs from '../views/Dogs.vue'
-import Owners from '../views/Owners.vue'
+import Owners from '../views/Countries.vue'
 import Plants from '../views/Plants.vue'
 
 Vue.use(VueRouter)
