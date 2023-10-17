@@ -1,119 +1,129 @@
 <template>
-    <div class="Plants">
-        <b-container>
-            <b-row>
-                <div class="col-12 mb-1">
-                    <div class="plants-top">
-                        <div class="my-pagination">
-                            <b-pagination
-                                    v-model="currentPage"
-                                    :total-rows="totalRows"
-                                    :per-page="perPage"
-                                    @change="fetchPlants(currentPage)"
-                            >
+  <div class="Plants">
+    <b-container>
+      <b-row>
+        <div class="col-12 mb-1">
+          <div class="plants-top">
+            <div class="my-pagination">
+              <b-pagination
+                  v-model="currentPage"
+                  :total-rows="totalRows"
+                  :per-page="perPage"
+                  @input="fetchPlants(currentPage)"
+              >
 
-                            </b-pagination>
+              </b-pagination>
 
-                        </div>
-                        <div class="loading">
-                            <div class="page-nav">
-                                <div class="page-nav-btn" @click="currentPage = 1">
-                                    <<
-                                </div>
-                                <input class="page-nav-input" type="number" min="1" max=maxPlantsPage
-                                       v-model=currentPage>
-                                <div class="page-nav-btn" @click="currentPage = lastPage">
-                                    <!--                                <div class="page-nav-btn" @click="currentPlantsPage = maxPlantsPage">-->
-                                    >>
-                                </div>
-                            </div>
-                            <b-button class="plants-btn"
-                                      variant="outline-secondary"
-                                      size="sm"
-                                      @click="fetchPlants(currentPage)">
-                                Get plants
-                            </b-button>
-                            Loaded: {{ !!plants ? plants.length : 'none' }}
-                            Pages: {{ lastPage }}
-                        </div>
-                    </div>
-                </div>
-            </b-row>
-            <b-row>
-                <div class="col-12 col-sm-9 col-md-9 col-lg-9 col-xl-9">
-                    <b-table striped
-                             :items="plants"
-                             :fields="fields"
-                             small
-                    >
-
-                    </b-table>
-                </div>
-                <div class="col-12 col-sm-3 col-md-3 col-lg-3 col-xl-3">
-                </div>
-            </b-row>
-            <b-row>
-                <div class="col-12 col-sm-9 col-md-9 col-lg-9 col-xl-9">
-                    <div class="plants-table">
-                        <div class="plants-row plants-title">
-                            <div class="plants-cell title" :class="{right: (i === plantsFields.length-1)}"
-                                 v-for="(field, i) of plantsFields" :key="i">
-                                {{ field.title }}
-                            </div>
-                        </div>
-                        <div class="plants-row"
-                             :class="{last: (p == plants.length-1)}"
-                             v-if="!!plants && plants.length  >0"
-                             v-for="(plant, p) of plants" :key="p"
-                             :style="{backgroundColor: (p%2 === 1) ? 'hsl(0, 0%, 83%, 0.3)' : 'none'}"
-                             @click="getPlantByID(plant['id'])">
-                            <div :class="{current: (!!currentPlantDetail && (plant['id'] === currentPlantDetail['id']))}">
-
-                            </div>
-                            <div class="plants-cell" :class="{right: (f == plantsFields.length-1)}"
-                                 v-if="!!plantsFields && plantsFields.length>0"
-                                 v-for="(field, f) of plantsFields" :key="f"
-                            >
-                                {{ arrToString(plant[field.name]) }}
-                            </div>
-
-                        </div>
-                        <!--            {{ plants }}-->
-                    </div>
-                </div>
-                <div class="col-12 col-sm-3 col-md-3 col-lg-3 col-xl-3">
-                    <div class="plant-detail">
-                        <div class="plants-detail-image-placeholder">
-                            <!--                  <div class="plants-detail-image-background" :style="{backgroundImage: `url(https://perenual.com/storage/species_image/16_acer_griseum/thumbnail/5158906371_ed08a86876_b.jpg)`}"></div>-->
-                            <div class="plants-detail-image-background"
-                                 :style="{backgroundImage: `url(${getPathThumbnail(currentPlantDetail)})`}"
-                                 @click="isOpenModalFullImage=true; full_img=getPathFullImage(currentPlantDetail);"
-                            >
-
-                            </div>
-                        </div>
-                        <div class="plants-detail-properties">
-                            {{ (!!currentPlantDetail) ? currentPlantDetail["description"] : '' }}
-                        </div>
-
-                    </div>
-                </div>
-
-            </b-row>
-        </b-container>
-
-        <div class="plants-modal-full-image" :style="{display: isOpenModalFullImage?'block':'none'}">
-            <b-btn class="modal-btn-close" size="md"
-                   variant="danger"
-                   @click="isOpenModalFullImage=false">
-                &times;
-            </b-btn>
-            <div class="full-image"
-                 :style="{backgroundImage: `url(${full_img})`}">
             </div>
+            <div class="loading">
+              <div class="page-nav">
+                <div class="page-nav-btn" @click="currentPage = 1">
+                  <<
+                </div>
+                <input class="page-nav-input" type="number" min="1" max=maxPlantsPage
+                       v-model=currentPage>
+                <div class="page-nav-btn" @click="currentPage = lastPage">
+                  >>
+                </div>
+              </div>
+              <b-button class="plants-btn"
+                        variant="outline-secondary"
+                        size="sm"
+                        @click="fetchPlants(currentPage)">
+                Get plants
+              </b-button>
+            </div>
+          </div>
+        </div>
+      </b-row>
+      <b-row>
+        <div class="col-12 col-sm-9 col-md-9 col-lg-9 col-xl-9">
+          <b-table striped small hover
+                   selectable
+                   select-mode="single"
+                   :items="plants"
+                   :fields="fields"
+                   @row-selected="onRowSelected"
+          >
+
+          </b-table>
+        </div>
+        <div class="col-12 col-sm-3 col-md-3 col-lg-3 col-xl-3">
+          <b-card v-if="!!currentPlantDetail"
+                  :title="!!currentPlantDetail ? currentPlantDetail['common_name'] : ''"
+                  :img-src=getPathThumbnail(currentPlantDetail)
+          >
+            <b-list-group flush>
+              <b-list-group-item><b>Type: </b>{{ currentPlantDetail['type'] }}</b-list-group-item>
+              <b-list-group-item><b>Origin: </b>{{ arrToString(currentPlantDetail['origin']) }}</b-list-group-item>
+              <b-list-group-item>{{ currentPlantDetail['description'] }}</b-list-group-item>
+<!--              {{ currentPlantDetail }}-->
+            </b-list-group>
+
+          </b-card>
+        </div>
+      </b-row>
+      <b-row>
+        <div class="col-12 col-sm-9 col-md-9 col-lg-9 col-xl-9">
+          <div class="plants-table">
+            <div class="plants-row plants-title">
+              <div class="plants-cell title" :class="{right: (i === plantsFields.length-1)}"
+                   v-for="(field, i) of plantsFields" :key="i">
+                {{ field.title }}
+              </div>
+            </div>
+            <div class="plants-row"
+                 :class="{last: (p == plants.length-1)}"
+                 v-if="!!plants && plants.length  >0"
+                 v-for="(plant, p) of plants" :key="p"
+                 :style="{backgroundColor: (p%2 === 1) ? 'hsl(0, 0%, 83%, 0.3)' : 'none'}"
+                 @click="getPlantByID(plant['id'])">
+              <div :class="{current: (!!currentPlantDetail && (plant['id'] === currentPlantDetail['id']))}">
+
+              </div>
+              <div class="plants-cell" :class="{right: (f == plantsFields.length-1)}"
+                   v-if="!!plantsFields && plantsFields.length>0"
+                   v-for="(field, f) of plantsFields" :key="f"
+              >
+                {{ arrToString(plant[field.name]) }}
+              </div>
+
+            </div>
+          </div>
+        </div>
+        <div class="col-12 col-sm-3 col-md-3 col-lg-3 col-xl-3">
+          <div class="plant-detail">
+            <div class="plants-detail-image-placeholder">
+              <div class="plants-detail-image-background"
+                   :style="{backgroundImage: `url(${getPathThumbnail(currentPlantDetail)})`}"
+                   @click="isOpenModalFullImage=true; full_img=getPathFullImage(currentPlantDetail)"
+              >
+
+              </div>
+            </div>
+            <div class="plants-detail-properties">
+              {{ (!!currentPlantDetail) ? currentPlantDetail["description"] : '' }}
+            </div>
+
+          </div>
         </div>
 
+      </b-row>
+    </b-container>
+
+    <div class="plants-modal-full-image" :style="{display: isOpenModalFullImage?'block':'none'}">
+      <b-btn class="modal-btn-close" size="md"
+             variant="danger"
+             @click="isOpenModalFullImage=false">
+        &times;
+      </b-btn>
+      0
+      <div class="full-image"
+           :style="{backgroundImage: `url(${full_img})`}">
+      </div>
     </div>
+
+  </div>
 </template>
 
 <script>
@@ -129,92 +139,100 @@ const defaultImage = 'default_image';
 const thumbnail = 'thumbnail';
 
 export default {
-    name: "Plants",
-    components: {},
-    props: [],
-    data() {
-        return {
-            plants: null,
-            fields: [
-                {key: 'common_name', label: 'Common name', sortable: true},
-                {key: 'scientific_name', label: 'Scientific name', sortable: true},
-                {key: 'cycle', label: 'Cycle', sortable: true},
-                {key: 'watering', label: 'Watering', sortable: true},
-                {key: 'sunlight', label: 'Sunlight', sortable: true},
-            ],
-            currentPage: 1,
-            lastPage: 1,
-            perPage: 0,
-            totalRows: 0,
+  name: "Plants",
+  components: {},
+  props: [],
+  data() {
+    return {
+      plants: null,
+      fields: [
+        {key: 'common_name', label: 'Common name', sortable: true},
+        {key: 'scientific_name', label: 'Scientific name', sortable: true},
+        {key: 'cycle', label: 'Cycle', sortable: true},
+        {key: 'watering', label: 'Watering', sortable: true},
+        {key: 'sunlight', label: 'Sunlight', sortable: true},
+      ],
+      currentPage: 1,
+      lastPage: 1,
+      perPage: 0,
+      totalRows: 0,
 
-            currentPlantDetail: null,
+      currentPlantDetail: null,
 
-            plantsFields: [
-                {name: 'common_name', title: 'Common name'},
-                {name: 'scientific_name', title: 'Scientific name'},
-                {name: 'cycle', title: 'Cycle'},
-                {name: 'watering', title: 'Watering'},
-                {name: 'sunlight', title: 'Sunlight'},
-            ],
-            full_img: null,
-            isOpenModalFullImage: false,
-        }
+      plantsFields: [
+        {name: 'common_name', title: 'Common name'},
+        {name: 'scientific_name', title: 'Scientific name'},
+        {name: 'cycle', title: 'Cycle'},
+        {name: 'watering', title: 'Watering'},
+        {name: 'sunlight', title: 'Sunlight'},
+      ],
+      full_img: null,
+      isBusy: true,
+      isOpenModalFullImage: false,
+    }
+  },
+  computed: {},
+  methods: {
+    init() {
+      this.currentPage = 1;
+      this.fetchPlants(this.currentPage);
     },
-    computed: {},
-    methods: {
-        init() {
-            this.currentPage = 1;
-            this.fetchPlants(this.currentPage);
-        },
-        async fetchPlants(page) {
-            let r = pathMain + pathSpeciesList + '?key=' + apikey + '&page=' + page;
-            await axios.get(r).then(response => {
-                this.plants = response.data.data;
-                this.lastPage = response.data.last_page;
-                this.perPage = response.data.per_page;
-                this.totalRows = response.data.total;
-            }).catch(err => console.log(err));
-        },
-
-        getPlantByID(id) {
-            let r = pathMain + pathSpeciesDetails + id + '?key=' + apikey;
-            axios.get(r).then(response => {
-                this.currentPlantDetail = response.data;
-            }).catch(err => console.log(err));
-
-        },
-
-        getPathThumbnail(plant) {
-            let def_img = (!!plant) ? plant["default_image"] : '';
-            if ((def_img != '') && (def_img != null)) {
-                return (!!def_img["thumbnail"]) ? def_img["thumbnail"] : '';
-            }
-        },
-
-        getPathFullImage(plant) {
-            let def_img = (!!plant) ? plant["default_image"] : '';
-            if ((def_img != '') && (def_img != null)) {
-                return (!!def_img["original_url"]) ? def_img["original_url"] : '';
-            }
-
-        },
-
-        arrToString(arr) {
-            let r = '';
-            if (Array.isArray(arr)) {
-                arr.forEach((item, i) => {
-                    r += item.slice(0, 1).toUpperCase() + item.slice(1) + ', '
-                });
-                r = r.slice(0, -2);
-            } else {
-                r = arr;
-            }
-            return r;
-        },
+    async fetchPlants(page) {
+      let r = pathMain + pathSpeciesList + '?key=' + apikey + '&page=' + page;
+      await axios.get(r).then(response => {
+        this.plants = response.data.data;
+        this.lastPage = response.data.last_page;
+        this.perPage = response.data.per_page;
+        this.totalRows = response.data.total;
+        this.isBusy = false;
+      }).catch(err => console.log(err));
     },
-    mounted() {
-        this.init();
+
+    async getPlantByID(id) {
+      let r = pathMain + pathSpeciesDetails + id + '?key=' + apikey;
+      await axios.get(r).then(response => {
+        this.currentPlantDetail = response.data;
+      }).catch(err => console.log(err));
+
     },
+
+    getPathThumbnail(plant) {
+      let def_img = (!!plant) ? plant["default_image"] : '';
+      if ((def_img != '') && (def_img != null)) {
+        return (!!def_img["thumbnail"]) ? def_img["thumbnail"] : '';
+      }
+    },
+
+    getPathFullImage(plant) {
+      let def_img = (!!plant) ? plant["default_image"] : '';
+      if ((def_img != '') && (def_img != null)) {
+        return (!!def_img["original_url"]) ? def_img["original_url"] : '';
+      }
+
+    },
+
+    arrToString(arr) {
+      let r = '';
+      if (Array.isArray(arr)) {
+        arr.forEach((item, i) => {
+          r += item.slice(0, 1).toUpperCase() + item.slice(1) + ', '
+        });
+        r = r.slice(0, -2);
+      } else {
+        r = arr;
+      }
+      return r;
+    },
+    onRowSelected(items) {
+      if (!!items[0]) {
+        this.getPlantByID(items[0]['id'])
+      }
+      ;
+    },
+  },
+  mounted() {
+    this.init();
+  },
 }
 </script>
 
@@ -234,26 +252,25 @@ export default {
     padding: 5px;
     display: flex;
     flex-flow: row nowrap;
-    justify-content: space-between;
+    justify-content: space-around;
     align-items: center;
     gap: 5px;
 
     .my-pagination {
       position: relative;
-      display: flex;
-      flex-flow: row;
+      width: auto;
+      align-self: center;
     }
 
     .loading {
       position: relative;
-      left: 5px;
-      bottom: 5px;
       width: auto;
       height: 40px;
       display: flex;
       flex-flow: row nowrap;
       justify-content: space-between;
       align-items: center;
+      align-self: center;
       gap: 5px;
 
       .plants-btn {
