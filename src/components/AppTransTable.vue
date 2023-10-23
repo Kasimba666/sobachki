@@ -96,7 +96,7 @@ export default {
           ? 'card'
           : !!this.gridMode
             ? 'grid'
-            : 'table';
+            : 'table';``
     },
     colsDefinition(){
       if(this.mode !== 'grid') {return {}; }

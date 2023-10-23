@@ -3,18 +3,18 @@
         <b-container>
             <b-row>
                 <div class="col-12 mb-1">
-<!--                    <div class="top">-->
-<!--                        <div class="my-pagination" v-if="!!totalRows">-->
-<!--                            <b-pagination-->
-<!--                                    v-model="currentPage"-->
-<!--                                    :total-rows="totalRows"-->
-<!--                                    :per-page="perPage"-->
-<!--                                    aria-controls="my-table"-->
-<!--                            >-->
-<!--                            </b-pagination>-->
+                    <!--                    <div class="top">-->
+                    <!--                        <div class="my-pagination" v-if="!!totalRows">-->
+                    <!--                            <b-pagination-->
+                    <!--                                    v-model="currentPage"-->
+                    <!--                                    :total-rows="totalRows"-->
+                    <!--                                    :per-page="perPage"-->
+                    <!--                                    aria-controls="my-table"-->
+                    <!--                            >-->
+                    <!--                            </b-pagination>-->
 
-<!--                        </div>-->
-<!--                    </div>-->
+                    <!--                        </div>-->
+                    <!--                    </div>-->
                 </div>
             </b-row>
             <b-row>
@@ -34,28 +34,28 @@
                                    @rowClick="onRowClick"
                     >
                         <TtColumn
-                            label="Name"
-                            prop="name"
-                            sortable="true"
-                            align="center"
-                            @changeSortOrder="showField"
+                                label="Name"
+                                prop="name"
+                                v-bind:sortable.sync="SortMode"
+                                align="center"
+                                showField
                         >
                             <template #default="{row}">
-                                <span :style="{fontWeight: row.population>20000000 ? 'bold' : 'normal'}">{{ row.name }} </span>
+                                <span :style="{fontWeight: row.population>20000000 ? 'bold' : 'normal'}">{{
+                                    row.name
+                                    }} </span>
                             </template>
                         </TtColumn>
                         <TtColumn
-                            label="Capital"
-                            prop="capital"
-                            sortable="true"
-                            @changeSortOrder="showField"
-                            >
+                                label="Capital"
+                                prop="capital"
+                                v-bind:sortable.sync="SortMode"
+                        >
                         </TtColumn>
                         <TtColumn
-                            label="Subregion"
-                            prop="subregion"
-                            sortable="true"
-                            @changeSortOrder="showField"
+                                label="Subregion"
+                                prop="subregion"
+                                v-bind:sortable.sync="SortMode"
                         >
                         </TtColumn>
                         <TtColumn label="Population" prop="population"></TtColumn>
@@ -63,18 +63,18 @@
 
                     </AppTransTable>
 
-                    <!--                    <b-table id="my-table"-->
-                    <!--                            striped small hover-->
-                    <!--                            selectable-->
-                    <!--                            select-mode="single"-->
-                    <!--                            :items="countries"-->
-                    <!--                            :fields="fields"-->
-                    <!--                            @row-selected="onRowSelected"-->
+                    <b-table id="my-table"
+                             striped small hover
+                             selectable
+                             select-mode="single"
+                             :items="countries"
+                             :fields="fields"
+                             @row-selected="onRowSelected"
 
-                    <!--                            :per-page="perPage"-->
-                    <!--                            :current-page="currentPage"-->
-                    <!--                    >-->
-                    <!--                    </b-table>-->
+                             :per-page="perPage"
+                             :current-page="currentPage"
+                    >
+                    </b-table>
                 </div>
                 <div class="col-12 col-sm-3 col-md-3 col-lg-3 col-xl-3">
                     <b-card v-if="!!country"
@@ -104,18 +104,25 @@ import axios from "axios";
 import AppTransTable from '@/components/AppTransTable';
 import TtColumn from '@/components/TtColumn';
 import {mapState} from "vuex";
+// import TableMixin from "@/mixins/TableMixin.vue";
 
 const pathAll = 'https://restcountries.com/v2/all';
-
+const defaultSortOrder = {
+    field: 'name',
+    order: 'DESC'
+};
 
 export default {
     name: "Countries",
     components: {AppTransTable, TtColumn},
     props: [],
+    // mixins: TableMixin,
     data() {
         return {
+            sortMode: {...defaultSortOrder},
+
             country: null,
-            countries: null,
+            srcCountries: [],
             rawData: null,
             fields: [
                 {key: 'name', label: 'Name', sortable: true},
@@ -128,23 +135,69 @@ export default {
             lastPage: 1,
             perPage: 30,
             currentCountry: null,
+            // curSort: null
         }
     },
     computed: {
         ...mapState(['screen', 'screenBreakpoints']),
         totalRows() {
-            return !!this.countries ? this.countries.length : 0;
-        }
+            return !!this.srcCountries ? this.srcCountries.length : 0;
+        },
+
+        countries() {
+            return [...this.srcCountries].sort((a, b) => {
+                if (a[this.SortMode.field] > b[this.SortMode.field]) {
+                    return (this.SortMode.order === 'DESC') ? 1 : -1
+                }
+                if (a[this.SortMode.field] < b[this.SortMode.field]) {
+                    return (this.SortMode.order === 'DESC') ? -1 : 1
+                }
+                return 0;
+            });
+            // return [...this.srcCountries].sort((a, b) => {
+            //     if (a[this.curSort.field] > b[this.curSort.field]) {
+            //         return 1
+            //     }
+            //     if (a[this.curSort.field] < b[this.curSort.field]) {
+            //         return -1
+            //     }
+            //     return 0;
+            // });
+        },
+        SortMode:{
+            get() {
+                console.log('>> ', this.sortMode.field, ' ', this.sortMode.order);
+                return this.sortMode;
+            },
+            set(v){
+                if(v === defaultSortOrder.field && v === this.sortMode.field) {//если поле не поменялось и равно дефолтному
+                    this.sortMode.order = (this.sortMode.order === 'ASC') ? 'DESC' : 'ASC';
+                } else if(v === this.sortMode.field && this.sortMode.order === 'ASC') {//если поле не поменялось, и порядок был ASC
+                    this.sortMode = {...defaultSortOrder};//порядок ставим по дефолту, т.е. DESC
+                } else {
+                    if(v === this.sortMode.field) {//поле не поменялось, но порядок не ASC
+                        this.sortMode.order = 'ASC';
+                    } else {//поле поменялось
+                        this.sortMode = {
+                            field: v,
+                            order: 'DESC'
+                        };
+                    }
+                }
+            }
+        },
+
     },
     methods: {
         init() {
-            this.currentPage = 1;
+            // this.currentPage = 1;
             this.fetchCountries();
+            // this.curSort = {field: 'name', order: 'ASC'}
+            // console.log(this.SortMode);
         },
         async fetchCountries() {
-            let r = pathAll;
-            await axios.get(r).then(response => {
-                this.countries = response.data;
+            await axios.get(pathAll).then(response => {
+                this.srcCountries = response.data;
 
             }).catch(err => console.log(err));
         },
@@ -172,9 +225,11 @@ export default {
                 this.country = (v.row)
             }
         },
-        showField(v) {
-            console.log(v.field, ': ', v.order);
-        },
+        // showField(v) {
+        //     console.log(v.field, ': ', v.order);
+        //     console.log(this.countries[0][v.field], ', ', this.countries[1][v.field], ' ... ', this.countries[this.countries.length - 1][v.field]);
+        //     this.curSort = v;
+        // },
     },
     mounted() {
         this.init();
@@ -202,68 +257,68 @@ export default {
     align-items: center;
     gap: 5px;
 
-    .my-pagination {
-      position: relative;
+    .my-pagination {position: relative;
       width: auto;
       align-self: center;
     }
 
   }
 
-    .plants-detail-image-placeholder {
-      position: relative;
+  .plants-detail-image-placeholder {
+    position: relative;
+    width: 100%;
+    height: 140px;
+    display: flex;
+    flex-flow: column wrap;
+    align-items: center;
+    cursor: pointer;
+
+    &:hover {
+      box-shadow: 0 0 10px 3px rgba(0, 140, 186, 0.5);
+    }
+
+    .plants-detail-image-background {
+      flex: 0 0 auto;
       width: 100%;
       height: 140px;
-      display: flex;
-      flex-flow: column wrap;
-      align-items: center;
-      cursor: pointer;
-
-      &:hover {
-        box-shadow: 0 0 10px 3px rgba(0, 140, 186, 0.5);
-      }
-
-      .plants-detail-image-background {
-        flex: 0 0 auto;
-        width: 100%;
-        height: 140px;
-        //width: auto;
-        //height: 100%;
-        background-size: contain;
-        background-position: center;
-        background-repeat: no-repeat;
-      }
-    }
-  }
-
-  .modal-btn-close {
-    position: absolute;
-    right: 5px;
-    top: 5px;
-    opacity: 80%;
-    z-index: 10;
-  }
-
-  .plants-modal-full-image {
-    position: fixed;
-    left: 5%;
-    top: 0px;
-    width: 90%;
-    height: 90%;
-    height-max: 100%;
-    margin: 1%;
-    background-color: white;
-    border: 1px solid hsla(0, 0%, 50%, 0.8);
-    z-index: 20;
-
-    .full-image {
-      position: relative;
-      width: 100%;
-      height: 100%;
-      background-size: auto auto;
+      //width: auto;
+      //height: 100%;
+      background-size: contain;
       background-position: center;
       background-repeat: no-repeat;
-      border: 1px solid hsla(0, 0%, 50%, 0.8);
     }
   }
+}
+
+.modal-btn-close {
+  position: absolute;
+  right: 5px;
+  top: 5px;
+  opacity: 80%;
+  z-index: 10;
+}
+
+.plants-modal-full-image {
+  position: fixed;
+  left: 5%;
+  top: 0px;
+  width: 90%;
+  height: 90%;
+  height-max: 100%;
+  margin: 1%;
+  background-color: white;
+  border: 1px solid hsla(0, 0%, 50%, 0.8);
+  z-index: 20;
+
+  .full-image {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background-size: auto auto;
+    background-position: center;
+    background-repeat: no-repeat;
+    border: 1px solid hsla(0, 0%, 50%, 0.8);
+  }
+}
 </style>
+3/356
