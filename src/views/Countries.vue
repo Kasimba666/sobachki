@@ -30,15 +30,13 @@
                                         lg:'3fr 2fr 2fr 100px 100px',
                                         md:'3fr 2fr 2fr 100px 100px',
                                         }"
-
                                    @rowClick="onRowClick"
                     >
                         <TtColumn
                                 label="Name"
                                 prop="name"
-                                v-bind:sortable.sync="SortMode"
+                                :sortable.sync="SortMode"
                                 align="center"
-                                showField
                         >
                             <template #default="{row}">
                                 <span :style="{fontWeight: row.population>20000000 ? 'bold' : 'normal'}">{{
@@ -49,13 +47,13 @@
                         <TtColumn
                                 label="Capital"
                                 prop="capital"
-                                v-bind:sortable.sync="SortMode"
+                                :sortable.sync="SortMode"
                         >
                         </TtColumn>
                         <TtColumn
                                 label="Subregion"
                                 prop="subregion"
-                                v-bind:sortable.sync="SortMode"
+                                :sortable.sync="SortMode"
                         >
                         </TtColumn>
                         <TtColumn label="Population" prop="population"></TtColumn>
@@ -82,13 +80,6 @@
                             :img-src="country['flags']['png']"
                     >
                         {{ country }}
-                        <!--                        <b-list-group flush>-->
-                        <!--                            <b-list-group-item><b>Type: </b>{{ currentPlantDetail['type'] }}</b-list-group-item>-->
-                        <!--                            <b-list-group-item><b>Origin: </b>{{ arrToString(currentPlantDetail['origin']) }}</b-list-group-item>-->
-                        <!--                            <b-list-group-item>{{ currentPlantDetail['description'] }}</b-list-group-item>-->
-                        <!--                            &lt;!&ndash;              {{ currentPlantDetail }}&ndash;&gt;-->
-                        <!--                        </b-list-group>-->
-
                     </b-card>
                 </div>
             </b-row>
@@ -101,24 +92,25 @@
 <script>
 
 import axios from "axios";
-import AppTransTable from '@/components/AppTransTable';
-import TtColumn from '@/components/TtColumn';
+import AppTransTable from '@/components/AppTransformerTable/AppTransTable.vue';
+import TtColumn from '@/components/AppTransformerTable/TtColumn.vue';
 import {mapState} from "vuex";
-// import TableMixin from "@/mixins/TableMixin.vue";
+import TableMixin from "@/components/AppTransformerTable/TableMixin.vue";
 
 const pathAll = 'https://restcountries.com/v2/all';
 const defaultSortOrder = {
-    field: 'name',
-    order: 'DESC'
+    field: 'subregion',
+    order: 'ASC'
 };
 
 export default {
     name: "Countries",
     components: {AppTransTable, TtColumn},
     props: [],
-    // mixins: TableMixin,
+    mixins: [TableMixin],
     data() {
         return {
+            defaultSortOrder: {...defaultSortOrder},
             sortMode: {...defaultSortOrder},
 
             country: null,
@@ -145,46 +137,14 @@ export default {
         },
 
         countries() {
+            let orderDESC = this.SortMode.order === 'DESC';
             return [...this.srcCountries].sort((a, b) => {
-                if (a[this.SortMode.field] > b[this.SortMode.field]) {
-                    return (this.SortMode.order === 'DESC') ? 1 : -1
-                }
                 if (a[this.SortMode.field] < b[this.SortMode.field]) {
-                    return (this.SortMode.order === 'DESC') ? -1 : 1
-                }
-                return 0;
-            });
-            // return [...this.srcCountries].sort((a, b) => {
-            //     if (a[this.curSort.field] > b[this.curSort.field]) {
-            //         return 1
-            //     }
-            //     if (a[this.curSort.field] < b[this.curSort.field]) {
-            //         return -1
-            //     }
-            //     return 0;
-            // });
-        },
-        SortMode:{
-            get() {
-                console.log('>> ', this.sortMode.field, ' ', this.sortMode.order);
-                return this.sortMode;
-            },
-            set(v){
-                if(v === defaultSortOrder.field && v === this.sortMode.field) {//если поле не поменялось и равно дефолтному
-                    this.sortMode.order = (this.sortMode.order === 'ASC') ? 'DESC' : 'ASC';
-                } else if(v === this.sortMode.field && this.sortMode.order === 'ASC') {//если поле не поменялось, и порядок был ASC
-                    this.sortMode = {...defaultSortOrder};//порядок ставим по дефолту, т.е. DESC
+                    return orderDESC ? 1 : -1
                 } else {
-                    if(v === this.sortMode.field) {//поле не поменялось, но порядок не ASC
-                        this.sortMode.order = 'ASC';
-                    } else {//поле поменялось
-                        this.sortMode = {
-                            field: v,
-                            order: 'DESC'
-                        };
-                    }
+                    return orderDESC ? -1 : 1
                 }
-            }
+            });
         },
 
     },
@@ -238,12 +198,14 @@ export default {
 </script>
 
 <style lang="scss">
-/****  Plants  ****/
+
 .Countries {
   position: relative;
   width: 100%;
   height: auto;
-
+.d-contents {
+    display: contents;
+}
 
   .top {
     position: relative;
@@ -257,7 +219,8 @@ export default {
     align-items: center;
     gap: 5px;
 
-    .my-pagination {position: relative;
+    .my-pagination {
+      position: relative;
       width: auto;
       align-self: center;
     }
@@ -321,4 +284,3 @@ export default {
   }
 }
 </style>
-3/356

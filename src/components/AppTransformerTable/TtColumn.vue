@@ -33,7 +33,7 @@
 </template>
 
 <script>
-import TtSortButton from "@/components/TtSortButton.vue";
+import TtSortButton from "./TtSortButton.vue";
 import { mapState } from "vuex";
 export default {
     name: "TtColumn",
@@ -65,7 +65,8 @@ export default {
             return  !!this.screen.type && this.context === 'header' && !this.sortable && this.mode.v==='card';
         },
     },
-    methods: {},
+    methods: {
+    },
     mounted() {
     },
 };
